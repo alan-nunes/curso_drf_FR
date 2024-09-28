@@ -265,3 +265,132 @@ path('todo/<int:pk>', todo_detail_change_and_delete),
 ```
 
 Agora é so iniciar o servidor e acessar a seguinte URL ```http://localhost:8000/todo/id``` onde o id é o numero 1,2,3... Vai aparecer o botão DELETE e PUT.
+
+
+## Implementando Class Based View
+Na ```views.py``` iremos realizar algumas alterações:
+
+- Iremos importar o pacote:
+```
+from rest_framework.views import APIView
+```
+
+Iremos refatorar a função ```todo_list``` para a classe criada abaixo:
+ ```
+class TodoListAndCreate(APIView):
+    def get(self, request):
+        todo = Todo.Object.all()
+        serializer = TodoSerializer(todo, many=True)
+        return Reponse(serializer.data)
+
+    def post(self, request):
+        serializer = TodoSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+ ```
+
+ No arquivo ```app/urls.py``` remova a url ```todo_list``` e adicione a seguinte:
+
+ ```
+ path('todo', TodoListAndCreate.as_view()),
+ ```
+
+ #### Agora é reinicializar o servidor para verificar se tudo está funcionando normalmente
+
+Iremos agora refatorar a função ```todo_detail_change_and_delete``` para a classe que iremos criar ```TodoDetailChangesAndDelete```
+
+```
+class TodoDetailChangesAndDelete(APIView):
+    def get_object(self, pk):
+        try:
+            return Todo.objects.get(pk=pk)
+        except Todo.DoesNotExist:
+            raise NotFound()
+    
+    def get(self, request, pk):
+        todo = self.get_object(pk)
+        serializer = TodoSerializer(todo)
+        return Response(serializer.data)
+
+    def put(self, request pk):
+        todo = self.get_object(pk)
+        serializer = TodoSerializer(todo, data=request.data)
+        if serializer.is_valid()
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk):
+        todo = self.get_object(pk)
+        todo.delete()
+        return Response(status.status.HTTP_204_NOT_CONTENT)
+```
+
+Logo após iremos importar a seguinte classe:
+
+```
+from rest_framework.exceptions import NotFound
+```
+
+Iremos alterar a urls e importar o view conforme feito na refatoração da função anterior.
+
+#### Agora é reinicializar o servidor para verificar se tudo está funcionando normalmente
+
+## Trabalhando com classes genericas
+No arquivo views.py iremos importar:
+
+```
+from rest_framework import generics
+```
+
+Iremos modicar a classe que estamos usando da seguinte forma:
+
+```
+class TodoListAndCreate(generics.ListCreateAPIView)
+```
+
+Com isso, a classe ja implementa os metodos get e post automaticamente. Dessa forma iremos apagar o corpo da classe e importar duas propriedes. Ao final, a classe vai ficar da seguinte forma:
+
+```
+class TodoDetailChangeAndDelete(generics.ListCreateAPIView):
+    queryset = Todo.objects.all() #consulta ao banco de dados
+    serializer_class = TodoSerializer
+```
+
+Iremos fazer o mesmo para a outra view:
+```
+class TodoDetailChangeAndDelete(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Todo.objects.all()
+    serializer_class = TodoSerializer
+```
+
+## Problemas que podem ocorrer
+
+Caso não consiga ativar o ambiente virtual corretamente, o Python pode não está configurado corretamente no sistema.
+
+Aqui estão alguns passos para resolver o problema:
+
+Remover a pasta venv no PowerShell do VS Code:
+
+```
+Remove-Item -Recurse -Force venv
+```
+Explicação:
+
+- **Recurse:** Remove todos os arquivos e subdiretórios dentro da pasta venv.
+- **Force:** Força a remoção, mesmo de arquivos de leitura ou proteção.
+
+Depois que o diretório for removido, você poderá recriar o ambiente virtual usando os comandos:
+
+```
+python -m venv venv
+.\venv\Scripts\Activate 
+```
+Instale as dependências com:
+
+```
+pip install -r requirements.txt
+```
+Isso deve remover o ambiente virtual corretamente e permitir que você o recrie e configure sem problemas.

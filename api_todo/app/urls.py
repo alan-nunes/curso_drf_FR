@@ -1,11 +1,11 @@
-from .views import todo_list, todo_detail_change_and_delete
+from .views import TodoListAndCreate, TodoDetailChangesAndDelete
 # ou from . import views
 
 
 from django.urls import path
 
 urlpatterns = [
-    path('todo/', todo_list),
+    path('todo/', TodoListAndCreate.as_view()),
     #ou path('todo/', views.todo_list, name='todo_list')
-    path('todo/<int:pk>', todo_detail_change_and_delete),
+    path('todo/<int:pk>', TodoDetailChangesAndDelete.as_view()),
 ]
