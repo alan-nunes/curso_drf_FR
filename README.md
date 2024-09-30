@@ -141,7 +141,7 @@ As views são funções ou classes que controlam a lógica de negócios da aplic
     ```
 Essa view responde com uma lista de todos os objetos da tabela Todo, convertendo-os em JSON usando o ```TodoSerializer```.
 
-2. Agora, registre essa view em app/urls.py:
+2. Agora, registre essa view em ```app/urls.py```:
     ``` 
     from .views import todo_list
     from django.urls import path
@@ -167,7 +167,7 @@ Essa view responde com uma lista de todos os objetos da tabela Todo, convertendo
     python manage.py runserver
     ```
 
-Acesse a URL http://127.0.0.1:8000/todo/ e você verá a resposta da requisição ````GET```, listando todos os itens da tabela ```Todo```.
+- Acesse a URL http://127.0.0.1:8000/todo/ e você verá a resposta da requisição ```GET```, listando todos os itens da tabela ```Todo```.
 
 5. Agora, vamos permitir que nossa API aceite requisições ```POST```, para criar novos itens. Modifique a função ```todo_list``` no arquivo ```views.py```:
     ```
@@ -199,7 +199,7 @@ Acesse a URL http://127.0.0.1:8000/todo/ e você verá a resposta da requisiçã
     ```
 
 ## Criar Views para Requisições e Respostas (GET, PUT E DELETE)
-1. Para permitir edição, deleção e visualização detalhada de um item Todo, adicione uma nova função no arquivo views.py:
+1. Para permitir edição, deleção e visualização detalhada de um item Todo, adicione uma nova função no arquivo ```views.py```:
 
     ```
     @api_view(['GET', 'PUT', 'DELETE'])
@@ -270,7 +270,7 @@ Para usar Class Based Views (CBVs) no Django REST Framework, precisamos realizar
     ```
 
 
-5. Iremos agora refatorar a função ```todo_detail_change_and_delete```. Crie a classe ```TodoDetailChangesAndDelete`` para gerenciar as operações de detalhamento, atualização e exclusão:
+5. Iremos agora refatorar a função ```todo_detail_change_and_delete```. Crie a classe ```TodoDetailChangesAndDelete``` para gerenciar as operações de detalhamento, atualização e exclusão:
     ```
     from rest_framework.exceptions import NotFound
     class TodoDetailChangesAndDelete(APIView):
@@ -299,7 +299,7 @@ Para usar Class Based Views (CBVs) no Django REST Framework, precisamos realizar
             return Response(status.status.HTTP_204_NOT_CONTENT)
     ```
 
-6. Atualizando as URLs Novamente. No arquivo app/urls.py, adicione a URL correspondente:
+6. Atualizando as URLs Novamente. No arquivo ```app/urls.py```, adicione a URL correspondente:
     ```
     path('todo/<int:pk>/', TodoDetailChangesAndDelete.as_view()),
     ```
@@ -333,7 +333,7 @@ Agora, vamos simplificar ainda mais usando classes genéricas.
     from rest_framework imports viewset
     ```
 
-2.Crie a classe abaixo, e apague as demais:
+2. Crie a classe abaixo, e apague as demais:
     ```
     class TodoViewSet(viewset.ModelViewSet):
         queryset = Todo.objects.all()
