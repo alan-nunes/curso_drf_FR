@@ -1,240 +1,213 @@
-## Criando ambiente de desenvolvimento
-```
-python3 -m venv venv
-``` 
-- Verificar se ele foi criado 
-    ```
-    ls
-    ```
+# Django Rest Framework - Guia de Estudo
 
-- Ativar ambiente
+Este documento foi criado para facilitar seus estudos sobre Django Rest Framework (DRF), servindo como um guia para configurar, desenvolver e testar APIs com Django e DRF.
+
+## Criando o Ambiente de Desenvolvimento
+
+1. Crie um ambiente virtual para isolar as dependências do projeto:
     ```
-    venv/Sctipts/activate
-    ```
+    python3 -m venv venv
+    ``` 
 
- ## Instalar o Django Rest Framework
-    
-```
-    pip install djangorestframework
-```
-
-## Criar projeto
-```
-    django-admin startproject api_todo
-```
-
-- Verificar se o projeto foi iniciado
-    
+2. Verifique se o ambiente foi criado:
     ```
         ls
     ```
 
-## Iniciar a 1° aplicação
-Entrar na pasta do projeto criado
-    
+3. Ative o ambiente virtual:
+    - No Windows:
+    ```
+    venv/Sctipts/activate
+    ```
+
+    - No Linux/Mac::
+    ```
+    source venv/bin/activate
+    ```
+
+ ## Instalar o Django Rest Framework
+No ambiente ativado, instale o Django e o Django Rest Framework:
 ```
-cd api_todo
+    pip install djangorestframework
 ```
 
-Criar a primeira aplicacação
-```
-python manage.py startapp app
-```
+## Criar Projeto
+1. Crie o projeto principal do Django:
+    ```
+    django-admin startproject api_todo
+    ```
 
-## Instalar APPs
-No arquivo do projeto, em settings.py, em ```INSTALLED_APPS``` incluir a lib do restframework e a aplicação criada.
+2. Verifique se o projeto foi criado com sucesso:
+    ```
+    ls
+    ```
+3. Acesse a pasta do projeto:
+    ```
+     cd api_todo
+    ```
 
-```
-    #apps
-    'app',
+## Criar a Primeira Aplicação
+1. Crie a primeira aplicação Django dentro do projeto:
+    ```
+    python manage.py startapp app
+    ```
 
-    #libs
-    'rest_framework',
-```
+## Registrar Aplicações no Django
+1. No arquivo ```settings.py```, registre sua aplicação e o Django Rest Framework na lista de aplicativos instalados (```INSTALLED_APPS```):
+    ```
+    INSTALLED_APPS = [
+        # Aplicações do projeto
+        'app',
 
-## Criar o 1° modelo
-Na pasta api_todo/app abra o ```arquivo models.py``` e add o código a seguir
+        # Bibliotecas
+        'rest_framework',
+    ]
+    ```
 
-```
-from django.db import models
+## Criar o Primeiro Modelo
+1. No arquivo ```models.py``` da aplicação app, crie o seguinte modelo:
 
-class Todo(models.Model):
-    name = models.CharField(max_length=120)
-    done = models.BooleanField(default=False)
-    create_at = models.DateField(auto_now_add=True) #add automaticamente a data
-```
+    ```
+    from django.db import models
+
+    class Todo(models.Model):
+        name = models.CharField(max_length=120)
+        done = models.BooleanField(default=False)
+        created_at = models.DateField(auto_now_add=True) #add automaticamente a data
+    ```
+- **name:** Um campo de texto com no máximo 120 caracteres.
+- **done:** Um campo booleano para marcar se a tarefa foi concluída.
+- **created_at:** Data de criação, adicionada automaticamente.
      
-- É necessário após criar o modelo, ou alterações executar a migrations
+2. Após criar ou modificar o modelo, é necessário gerar e aplicar as migrações:
+    ```
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
 
-     ```
-     python manage.py makemigrations
-     ```
+## Criar um Objeto no Shell Django
+1. Abra o shell interativo do Django: 
+    ```
+    python manage.py shell
+    ```
 
-- Enviar as alterções para o banco de dados
-     
-     ```
-     python manage.py migrate
-     ```
-
-## Criar objeto
-Abra o shell django:
+2. Importe o modelo ```Todo``` e crie um objeto:
+    ```
+    from app.models import Todo
     
-```
-python manage.py shell
-```
+    todo = Todo(name="Estudar Django", done=False)
+    todo.save()  # Salva o objeto no banco de dados.
+    ```
 
- Importe o modelo ```Todo``` 
-```
-from app.models import Todo
-```
-
-Crie um objeto Todo
-```
-todo = Todo(name="Estudar Django", done=False)
-todo.save()  # Salva o objeto no banco de dados.
-```
-
-Verificar se o objeto foi criado corretamente
-```
-todos = Todo.objects.all() # Retorna todos os objetos Todo do banco.
+3. Verifique se o objeto foi criado corretamente:
+    ```
+    todos = Todo.objects.all() # Retorna todos os objetos Todo do banco.
     for t in todos:
-        print(t.name. t.done, t.create_at)
-```
+        print(t.name. t.done, t.created_at)
+    ```
 
 ## Criar Serializers
+1. Crie um arquivo ```serializers.py``` dentro da aplicação ```app``` e adicione o seguinte código:
 
-Na pasta do ```app``` crie o arquivo ```serializers.py``` e adicione o seguinte código:
+    ```
+    from app.models import Todo
+    from rest_framework import serializers
 
-```
-from app.models import Todo
-from rest_framework import serializers
+    class TodoSerializer(serializers.ModelSerializer):
+        class Meta:
+            model = Todo
+            fields = ['id', 'name', 'done', 'created_at']
+    ```
 
-class TodoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Todo
-        fields = ['id', 'name', 'done', 'created_at']
-```
+2. O TodoSerializer é responsável por converter os dados do modelo Todo em formatos como JSON.
 
-Com isso foi criada uma classe serializadora do modelo Todo. Agora vamos abrir o terminal do projeto:
 
-```
-python manage.py shell
-```
 
-Vamos importar o modelo e a classe recém criada
+## Criar Views para Requisições e Respostas (GET e POST)
+As views são funções ou classes que controlam a lógica de negócios da aplicação. Quando uma URL específica é acessada, uma view correspondente é chamada. Em uma API, as views enviam e recebem dados, processando requisições como ```GET```, ```POST```, ```PUT``` e ```DELETE```.
 
-```
-from app.models import Todo
-from app.serializers import TodoSerializer
-```
+1. No arquivo ```views.py```, adicione a seguinte função para lidar com requisições ```GET``` e listar todos os itens:
+    ```
+    from rest_framework.decorators import api_view
+    from rest_framework.response import Response
+    from app.models import Todo
+    from app.serializers import TodoSerializer
 
-Vamos serializer o objeto criado
-
-```
-todo = Todo.objects.first() ## pegando o primeiro objeto criado
-```
-
-Vamos criar uma variável para armazenar esse objeto
-```
-serializer = TodoSerializer(todo)
-```
-
-Para ver o objeto basta apenas:
-```
-serializer.data
-```
-
-## Requisições e Respostas com as Views
-As views são funções ou classes que quando acessamos determinadas urls ela é chamada. As views envia e recebe dados. 
-No arquivo ```views.py``` adicione o seguinte código:
-
-```
-from app.models import Todo
-from app.serializers import TodoSerializer
-
-# determina quais metodos podem serem acessados pela view (GET, POST...)
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-
-@api_view(['GET'])
-def todo_list(request):
-    todo = Todo.objects.all()  #setando uma variavel que pega todos os objetos do banco de dados e vai colocar nessa variável
-    serializer = TodoSerializer(todo, many=True)    
-    return Response(serializer.data)
-```
-
-Fizemos uma função que pode chamar o método GET. Agora devemos regitrar uma URL, para quando essa URL for chamada, chamar essa função. Na pasta ```app``` vamos criar um arquivo ```urls.py``` e dentro do arquivo iremos add o seguinte código:
-
-``` 
-from .views import todo_list
-
-from django.urls import path
-
-urlpatterns = [
-    path('todo/', todo_list)
-]
-```
-
-após fazer isso, abra a pasta ```api_todo```, e abra o arquivo ```urls.py``` e vamos incluir a url da aplicação, devemos atualizar os códigos para que fique da seguinte forma:
-
-```
-from django.contrib import admin
-from django.urls import include, path
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('app.urls')),
-]
-```
-
-Feito isso, iremos inicializar nosso servidor para realizar os testes:
-
-```
-python manage.py runserver
-```
-
-Caso não apareça mensagem de erro, é sinal que está tudo ok. Acessaremos a url http://127.0.0.1:8000/, e logo após iremos acessar http://127.0.0.1:8000/todo/ e deve ser mostrada na nossa requisição GET.
-
-Iremos agora implementar a nossa requisição POST, para isso iremos alterar o código do arquivo ```views.py``` apenas no método ```@api_view```
-
-```
-@api_view(['GET', 'POST'])
-def todo_list(request):
-    if request.method == 'GET':
-        todo = Todo.Objects.all()
-        serializer = TodoSerializer(todo, many=True)
+    @api_view(['GET'])
+    def todo_list(request):
+        todos = Todo.objects.all()
+        serializer = TodoSerializer(todos, many=True)
         return Response(serializer.data)
+    ```
+Essa view responde com uma lista de todos os objetos da tabela Todo, convertendo-os em JSON usando o ```TodoSerializer```.
+
+2. Agora, registre essa view em app/urls.py:
+    ``` 
+    from .views import todo_list
+    from django.urls import path
+
+    urlpatterns = [
+        path('todo/', todo_list),
+    ]
+    ```
+
+3. No arquivo principal de URLs ```(api_todo/urls.py)```, adicione as URLs da aplicação ```app```:
+    ```
+    from django.contrib import admin
+    from django.urls import include, path
+
+    urlpatterns = [
+        path('admin/', admin.site.urls),
+        path('', include('app.urls')),
+    ]
+    ```
+
+4. Para testar, inicie o servidor:
+    ```
+    python manage.py runserver
+    ```
+
+Acesse a URL http://127.0.0.1:8000/todo/ e você verá a resposta da requisição ````GET```, listando todos os itens da tabela ```Todo```.
+
+5. Agora, vamos permitir que nossa API aceite requisições ```POST```, para criar novos itens. Modifique a função ```todo_list``` no arquivo ```views.py```:
+    ```
+    from rest_framework import status
+
+    @api_view(['GET', 'POST'])
+    def todo_list(request):
+    """
+    Lida com requisições GET e POST para listar e criar itens Todo.
+    """
+        if request.method == 'GET':
+            todos = Todo.objects.all()
+            serializer = TodoSerializer(todos, many=True)
+            return Response(serializer.data)
     
-    elif request.method == 'POST':
-        serializer = TodoSerializer(data=request.data)
+        elif request.method == 'POST':
+            serializer = TodoSerializer(data=request.data)
             if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-```
+    ```
 
-Feito isso, iremos importat a classe Status
-```
-from rest_framework import status
-```
+6. Agora você pode enviar requisições POST para http://127.0.0.1:8000/todo/ com o seguinte JSON, por exemplo:
+    ```
+    {
+        "name": "fazer suco"
+    }
+    ```
 
-Iremos reinicializar o servidor e verificar se deu certo. Logo após iremos criar um novo objeto:
+## Criar Views para Requisições e Respostas (GET, PUT E DELETE)
+1. Para permitir edição, deleção e visualização detalhada de um item Todo, adicione uma nova função no arquivo views.py:
 
-```
-{
-    "name": "fazer suco"
-}
-```
-
-Após esse processo iremos realizar as requisções Delete e a de detalhar o objeto. Em nosso arquivo views.py iremos incluir uma nova função.
-
-```
-@api_view(['GET', 'PUT', 'DELETE'])
-def todo_detail_change_and_delete(request, pk):
-    try:
-        todo = Todo.objects.get(pk=pk)  #pega o objeto no banco de dados que contenha essa chave primária
-    except Todo.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    ```
+    @api_view(['GET', 'PUT', 'DELETE'])
+    def todo_detail_change_and_delete(request, pk):
+        try:
+            todo = Todo.objects.get(pk=pk)  #pega o objeto no banco de dados que contenha essa chave primária
+        except Todo.DoesNotExist:
+            return Response(status=status.HTTP_404_NOT_FOUND)
 
         if request.method == 'GET':
             serializer = TodoSerializer(todo)
@@ -250,147 +223,164 @@ def todo_detail_change_and_delete(request, pk):
         elif request.method == 'DELETE':
             todo.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-```
+    ```
 
-Feito isso, iremos criar uma URL para essa função. no arquivo ```app\urls.py``` 
+2. No arquivo ```app/urls.py```, adicione a rota para essa view:
+    ```
+    from .views import todo_list, todo_detail_change_and_delete
 
-Iremos importar a view
-```
-from .views import todo_list, todo_detail_change_and_delete
-```
+    path('todo/<int:pk>', todo_detail_change_and_delete),
+    ```
 
-Logo após criar a URL
-```
-path('todo/<int:pk>', todo_detail_change_and_delete),
-```
-
-Agora é so iniciar o servidor e acessar a seguinte URL ```http://localhost:8000/todo/id``` onde o id é o numero 1,2,3... Vai aparecer o botão DELETE e PUT.
+3. Agora, você pode acessar detalhes, editar ou deletar itens acessando ```http://localhost:8000/todo/<id>```.
 
 
-## Implementando Class Based View
-Na ```views.py``` iremos realizar algumas alterações:
+## Implementando Class Based Views
+Para usar Class Based Views (CBVs) no Django REST Framework, precisamos realizar algumas alterações no arquivo views.py.
 
-- Iremos importar o pacote:
-```
-from rest_framework.views import APIView
-```
+1. Adicione a seguinte importação ao seu arquivo ```views.py```:
+    ```
+    from rest_framework.views import APIView
+    ```
 
-Iremos refatorar a função ```todo_list``` para a classe criada abaixo:
- ```
-class TodoListAndCreate(APIView):
-    def get(self, request):
-        todo = Todo.Object.all()
-        serializer = TodoSerializer(todo, many=True)
-        return Reponse(serializer.data)
+2. Refatore a função ```todo_list``` para uma class-based view, conforme o código abaixo:
+    ```
+    class TodoListAndCreate(APIView):
+        def get(self, request):
+            todo = Todo.object.all()
+            serializer = TodoSerializer(todo, many=True)
+            return Reponse(serializer.data)
 
-    def post(self, request):
-        serializer = TodoSerializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
- ```
+        def post(self, request):
+            serializer = TodoSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+    ```
 
- No arquivo ```app/urls.py``` remova a url ```todo_list``` e adicione a seguinte:
+ 3. No arquivo ```app/urls.py``` remova a url anterior de```todo_list``` e adicione a seguinte linha:
+    ```
+        path('todo', TodoListAndCreate.as_view()),
+    ```
 
- ```
- path('todo', TodoListAndCreate.as_view()),
- ```
+4. Reinicie o servidor para verificar se tudo está funcionando corretamente:
+    ```
+    python manage.py runserver
+    ```
 
- #### Agora é reinicializar o servidor para verificar se tudo está funcionando normalmente
 
-Iremos agora refatorar a função ```todo_detail_change_and_delete``` para a classe que iremos criar ```TodoDetailChangesAndDelete```
-
-```
-class TodoDetailChangesAndDelete(APIView):
-    def get_object(self, pk):
-        try:
-            return Todo.objects.get(pk=pk)
-        except Todo.DoesNotExist:
-            raise NotFound()
+5. Iremos agora refatorar a função ```todo_detail_change_and_delete```. Crie a classe ```TodoDetailChangesAndDelete`` para gerenciar as operações de detalhamento, atualização e exclusão:
+    ```
+    from rest_framework.exceptions import NotFound
+    class TodoDetailChangesAndDelete(APIView):
+        def get_object(self, pk):
+            try:
+                return Todo.objects.get(pk=pk)
+            except Todo.DoesNotExist:
+                raise NotFound()
     
-    def get(self, request, pk):
-        todo = self.get_object(pk)
-        serializer = TodoSerializer(todo)
-        return Response(serializer.data)
-
-    def put(self, request pk):
-        todo = self.get_object(pk)
-        serializer = TodoSerializer(todo, data=request.data)
-        if serializer.is_valid()
-            serializer.save()
+        def get(self, request, pk):
+            todo = self.get_object(pk)
+            serializer = TodoSerializer(todo)
             return Response(serializer.data)
-        return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
+
+        def put(self, request pk):
+            todo = self.get_object(pk)
+            serializer = TodoSerializer(todo, data=request.data)
+            if serializer.is_valid()
+                serializer.save()
+                return Response(serializer.data)
+         return Response(serializer.erros, status=status.HTTP_400_BAD_REQUEST)
     
-    def delete(self, request, pk):
-        todo = self.get_object(pk)
-        todo.delete()
-        return Response(status.status.HTTP_204_NOT_CONTENT)
-```
+        def delete(self, request, pk):
+            todo = self.get_object(pk)
+            todo.delete()
+            return Response(status.status.HTTP_204_NOT_CONTENT)
+    ```
 
-Logo após iremos importar a seguinte classe:
+6. Atualizando as URLs Novamente. No arquivo app/urls.py, adicione a URL correspondente:
+    ```
+    path('todo/<int:pk>/', TodoDetailChangesAndDelete.as_view()),
+    ```
 
-```
-from rest_framework.exceptions import NotFound
-```
+7. Reinicie o servidor novamente para verificar as novas implementações.
 
-Iremos alterar a urls e importar o view conforme feito na refatoração da função anterior.
+## Trabalhando com Classes Genéricas
+Agora, vamos simplificar ainda mais usando classes genéricas.
 
-#### Agora é reinicializar o servidor para verificar se tudo está funcionando normalmente
+1. Adicione a seguinte importação no seu views.py:
+    ```
+    from rest_framework import generics
+    ```
 
-## Trabalhando com classes genericas
-No arquivo views.py iremos importar:
+2. Refatore as classes da seguinte forma para que implemente os métodos automáticamente:
+    ```
+    class TodoListAndCreate(generics.ListCreateAPIView)
+        queryset = Todo.objects.all()  # Consulta ao banco de dados
+        serializer_class = TodoSerializer
+  
+    class TodoDetailChangeAndDelete(generics.ListCreateAPIView):
+        queryset = Todo.objects.all() #consulta ao banco de dados
+        serializer_class = TodoSerializer
+    ```
 
-```
-from rest_framework import generics
-```
+3. Reinicie o servidor novamente para verificar as novas implementações. Note que os métodos estão funcionando normalmente.
 
-Iremos modicar a classe que estamos usando da seguinte forma:
+## Criando o ViewSet
+1. Reduza as classes para apenas uma, utilizando um ViewSet. No arquivo ```views.py``` importe o pacote das viewssets:
+    ```
+    from rest_framework imports viewset
+    ```
 
-```
-class TodoListAndCreate(generics.ListCreateAPIView)
-```
+2.Crie a classe abaixo, e apague as demais:
+    ```
+    class TodoViewSet(viewset.ModelViewSet):
+        queryset = Todo.objects.all()
+        serializer_class = TodoSerializer
+    ```
 
-Com isso, a classe ja implementa os metodos get e post automaticamente. Dessa forma iremos apagar o corpo da classe e importar duas propriedes. Ao final, a classe vai ficar da seguinte forma:
+3. No arquivo app/urls.py, substitua o código existente pelo seguinte:
+    ```
+    from app.views import TodoViewSet
+    from rest_framework.routers import DefaultRouter
 
-```
-class TodoDetailChangeAndDelete(generics.ListCreateAPIView):
-    queryset = Todo.objects.all() #consulta ao banco de dados
-    serializer_class = TodoSerializer
-```
+    router = DefaultRouter()
+    router.register(r'', TodoViewSet)
 
-Iremos fazer o mesmo para a outra view:
-```
-class TodoDetailChangeAndDelete(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Todo.objects.all()
-    serializer_class = TodoSerializer
-```
+    urlpatterns = router.urls
+    ```
 
-## Problemas que podem ocorrer
+4. Ative o ambiente de desenvolvimento e execute o servidor novamente:
+    ```
+    python manage.py runserver
+    ```
 
-Caso não consiga ativar o ambiente virtual corretamente, o Python pode não está configurado corretamente no sistema.
 
-Aqui estão alguns passos para resolver o problema:
+## Problemas que Podem Ocorrer
 
-Remover a pasta venv no PowerShell do VS Code:
+Caso tenha dificuldades para ativar o ambiente virtual, pode ser que o Python não esteja configurado corretamente no seu sistema. Siga os passos abaixo para resolver:
 
-```
-Remove-Item -Recurse -Force venv
-```
+1. Remover a pasta do ambiente virtual. Execute o seguinte comando no PowerShell do VS Code:
+    ```
+    Remove-Item -Recurse -Force venv
+    ```
+
 Explicação:
 
 - **Recurse:** Remove todos os arquivos e subdiretórios dentro da pasta venv.
 - **Force:** Força a remoção, mesmo de arquivos de leitura ou proteção.
 
-Depois que o diretório for removido, você poderá recriar o ambiente virtual usando os comandos:
+2. Depois que o diretório for removido, você poderá recriar o ambiente virtual usando os comandos:
+    ```
+    python -m venv venv
+    .\venv\Scripts\Activate 
+    ```
 
-```
-python -m venv venv
-.\venv\Scripts\Activate 
-```
-Instale as dependências com:
+3. Instalar as dependências com:
+    ```
+    pip install -r requirements.txt
+    ```
+Esses passos devem resolver problemas relacionados à configuração do ambiente virtual.
 
-```
-pip install -r requirements.txt
-```
-Isso deve remover o ambiente virtual corretamente e permitir que você o recrie e configure sem problemas.
+Créditos: [YouTuber Fernando Rodrigues](https://youtu.be/uly58gcUGv8?si=MhEVI_xTuBqBLUvZ) pela excelente tutoria.

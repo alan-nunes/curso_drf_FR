@@ -7,11 +7,19 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.exceptions import NotFound
 from rest_framework import generics
+from rest_framework import viewsets
 
-class TodoListAndCreate(generics.ListCreateAPIView):
+class TodoViewSet(viewsets.ModelViewSet):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
-    """"def get(self, request):
+
+
+
+""""class TodoListAndCreate(generics.ListCreateAPIView):
+    queryset = Todo.objects.all()
+    serializer_class = TodoSerializer
+    
+    def get(self, request):
         todo = Todo.objects.all()
         serializer = TodoSerializer(todo, many=True)
         return Response(serializer.data)
@@ -21,12 +29,13 @@ class TodoListAndCreate(generics.ListCreateAPIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)"""
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class TodoDetailChangesAndDelete(generics.RetrieveUpdateDestroyAPIView):
     queryset = Todo.objects.all()
     serializer_class = TodoSerializer
-    """def get_object(self, pk):
+
+        def get_object(self, pk):
         try:
             return Todo.objects.get(pk=pk)
         except Todo.DoesNotExist:
@@ -48,10 +57,10 @@ class TodoDetailChangesAndDelete(generics.RetrieveUpdateDestroyAPIView):
     def delete(self, request, pk):
         todo = self.get_object(pk)
         todo.delete
-        return Response(status=status.HTTP_204_NO_CONTENT)"""
+        return Response(status=status.HTTP_204_NO_CONTENT)
             
 
-"""@api_view(['GET', 'POST'])
+@api_view(['GET', 'POST'])
 def todo_list(request):
     if request.method == 'GET':
         todo = Todo.objects.all()
